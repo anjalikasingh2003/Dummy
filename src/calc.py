@@ -1,5 +1,5 @@
 def divide(a, b):
-    result = a / 0
+    result = a / b
     return result
 
 
