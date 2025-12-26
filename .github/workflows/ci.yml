@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          pytest --maxfail=1
+        continue-on-error: true
+
+      - name: Send CI failure to DevStream AI
+        if: failure()
+        run: |
+          echo "Tests failed. Sending error to DevStream AI..."
+
+          ERROR_LOG=$(pytest --maxfail=1 2>&1 || true)
+          FILE_PATH="src/calc.py"
+          CODE_CONTENT=$(sed 's/"/\\"/g' src/calc.py)
+
+          curl -X POST "<NGROK_URL>/api/send_ci_failure" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"repo_owner\": \"anjalikasingh2003\",
+              \"repo_name\": \"Dummy\",
+              \"branch\": \"master\",
+              \"commit\": \"${GITHUB_SHA}\",
+              \"log\": \"$ERROR_LOG\",
+              \"file_path\": \"$FILE_PATH\",
+              \"code\": \"$CODE_CONTENT\"
+            }"
