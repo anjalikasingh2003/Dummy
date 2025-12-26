@@ -24,7 +24,7 @@ jobs:
       - name: Run tests
         run: |
           pytest --maxfail=1
-        continue-on-error: true
+       
 
       - name: Send CI failure to DevStream AI
         if: failure()
