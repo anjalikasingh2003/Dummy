@@ -1,0 +1,9 @@
+--- a/src/calc.py
++++ b/src/calc.py
+@@ -1,4 +1,4 @@
+def divide_l(a, b):
+     print("testing")
+     print("once myprep yehhhh")
+-    result = a / 0
++    result = a / b
+     return result
