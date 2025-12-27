@@ -1,9 +1,9 @@
 --- a/src/my_test.py
 +++ b/src/my_test.py
-@@ -1,4 +1,4 @@
+@@ -1,5 +1,5 @@
 def divide(a, b):
-     print("testing")
-     print("once myprep yehhhh")
+    print("testing")
+    print("once myprep yehhhh")
 -    result = a / 0
 +    result = a / b
-     return result
+    return result
