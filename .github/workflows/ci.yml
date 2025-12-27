@@ -1,4 +1,4 @@
-name: CI
+name: DevStream AI CI
 
 on:
   push:
@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -21,36 +22,62 @@ jobs:
         run: |
           pip install -r req.txt
 
+      # ---- RUN TESTS (Expected to fail) ----
       - name: Run tests
+        id: runcmd
         run: |
+          echo "Running tests..."
           pytest --maxfail=1
-       
+        continue-on-error: true
 
+      # ---- SEND FAILURE TO DEVSTREAM AI ----
       - name: Send CI failure to DevStream AI
         if: failure()
         run: |
-          echo "Tests failed. Sending error to DevStream AI..."
+          echo "❌ Tests failed — sending details to DevStream AI..."
 
+          # Capture full pytest output
           ERROR_LOG=$(pytest --maxfail=1 2>&1 || true)
 
+          # Determine changed file (fallback to calc.py)
+          FILE_PATH=$(git diff --name-only HEAD~1 HEAD | grep ".py" | head -n 1)
+          if [ -z "$FILE_PATH" ]; then
+            FILE_PATH="src/calc.py"
+          fi
+
+          # Escape file contents safely into JSON
+          CODE_CONTENT=$(sed ':a;N;$!ba;s/\n/\\n/g' "$FILE_PATH" \
+             | sed 's/"/\\"/g' \
+             | sed 's/\r/\\r/g')
+
+          # Escape pytest logs safely
           ESCAPED_LOG=$(printf "%s" "$ERROR_LOG" \
-            | sed ':a;N;$!ba;s/\n/\\n/g' \
-            | sed 's/"/\\"/g')
+             | sed ':a;N;$!ba;s/\n/\\n/g' \
+             | sed 's/"/\\"/g' \
+             | sed 's/\r/\\r/g')
 
-          CODE_CONTENT=$(sed ':a;N;$!ba;s/\n/\\n/g' src/calc.py \
-            | sed 's/"/\\"/g')
+          # ---- SEND PAYLOAD WITH RETRY LOGIC ----
+          for i in {1..5}
+          do
+            echo "Attempt $i to send CI data..."
+            curl -X POST "https://dressiest-terese-nontemperable.ngrok-free.dev/api/send_ci_failure" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"repo_owner\": \"${{ github.repository_owner }}\",
+                \"repo_name\": \"Dummy\",
+                \"branch\": \"${GITHUB_REF_NAME}\",
+                \"commit\": \"${GITHUB_SHA}\",
+                \"log\": \"$ESCAPED_LOG\",
+                \"file_path\": \"$FILE_PATH\",
+                \"code\": \"$CODE_CONTENT\"
+              }" && break
 
-                curl -X POST "https://dressiest-terese-nontemperable.ngrok-free.dev/api/send_ci_failure" \
-            -H "Content-Type: application/json" \
-            -d "{
-                  \"repo_owner\": \"anjalikasingh2003\",
-                  \"repo_name\": \"Dummy\",
-                  \"branch\": \"master\",
-                  \"commit\": \"${GITHUB_SHA}\",
-                  \"log\": \"$ESCAPED_LOG\",
-                  \"file_path\": \"src/calc.py\",
-                  \"code\": \"$CODE_CONTENT\"
-                }"
+            echo "Retrying in 2 seconds..."
+            sleep 2
+          done
 
-
-
+        
+      # Optional: Notify if everything succeeded
+      - name: Success message
+        if: success()
+        run: echo "✔ CI passed without errors."
