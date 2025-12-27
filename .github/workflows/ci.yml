@@ -32,7 +32,7 @@ jobs:
 
       # ---- SEND FAILURE TO DEVSTREAM AI ----
       - name: Send CI failure to DevStream AI
-        if: failure()
+        if: ${{ steps.tests.outcome == 'failure' }}
         run: |
           echo "❌ Tests failed — sending details to DevStream AI..."
 
