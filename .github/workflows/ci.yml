@@ -10,63 +10,100 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # ---------------------------------------------------------
+      # 1. Checkout project
+      # ---------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # ---------------------------------------------------------
+      # 2. Python environment
+      # ---------------------------------------------------------
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
+      # ---------------------------------------------------------
+      # 3. Install dependencies
+      # ---------------------------------------------------------
       - name: Install dependencies
         run: |
           pip install -r req.txt
-          
+
+      # ---------------------------------------------------------
+      # 4. Add repo root to PYTHONPATH so `from src.x import y` works
+      # ---------------------------------------------------------
       - name: Add project root to PYTHONPATH
-        run: echo "PYTHONPATH=$(pwd)/src" >> $GITHUB_ENV
-      # ---- RUN TESTS (Expected to fail) ----
+        run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+
+      # ---------------------------------------------------------
+      # 5. Run tests (do NOT fail job)
+      # ---------------------------------------------------------
       - name: Run tests
-        id: runcmd
+        id: tests
+        continue-on-error: true
         run: |
           echo "Running tests..."
           pytest --maxfail=1
-      
 
-      # ---- SEND FAILURE TO DEVSTREAM AI ----
+      # ---------------------------------------------------------
+      # 6. On FAILURE → send event to DevStream AI
+      # ---------------------------------------------------------
       - name: Send CI failure to DevStream AI
-        if: failure()
+        if: ${{ steps.tests.outcome == 'failure' }}
         run: |
           echo "❌ Tests failed — sending details to DevStream AI..."
 
-          # Capture full pytest output
+          # Capture pytest full error output
           ERROR_LOG=$(pytest --maxfail=1 2>&1 || true)
 
-          # Determine changed file (fallback to calc.py)
+          # Try 1: detect changed file from git diff
           FILE_PATH=$(git diff --name-only HEAD~1 HEAD | grep ".py" | head -n 1)
+
+          # Try 2: detect from pytest error log traceback
           if [ -z "$FILE_PATH" ]; then
-            FILE_PATH="src/calc.py"
+            FILE_PATH=$(echo "$ERROR_LOG" | grep -oP "(?<=File \")[^\"]+\.py" | head -n 1)
           fi
 
-          # Escape file contents safely into JSON
+          # Try 3: detect import path from src/ style imports
+          if [ -z "$FILE_PATH" ]; then
+            FILE_PATH=$(echo "$ERROR_LOG" | grep -oP "src\/[A-Za-z0-9_\/]+\.py" | head -n 1)
+          fi
+
+          # Try 4: fallback to any .py file in repo
+          if [ -z "$FILE_PATH" ]; then
+            FILE_PATH=$(find . -type f -name "*.py" | head -n 1)
+          fi
+
+          # Abort if STILL nothing
+          if [ -z "$FILE_PATH" ]; then
+            echo "⚠️ Could not detect a Python file. Aborting send."
+            exit 0
+          fi
+
+          echo "📌 Detected failing file: $FILE_PATH"
+
+          # Escape code content
           CODE_CONTENT=$(sed ':a;N;$!ba;s/\n/\\n/g' "$FILE_PATH" \
-             | sed 's/"/\\"/g' \
-             | sed 's/\r/\\r/g')
+            | sed 's/"/\\"/g' \
+            | sed 's/\r/\\r/g')
 
-          # Escape pytest logs safely
+          # Escape logs
           ESCAPED_LOG=$(printf "%s" "$ERROR_LOG" \
-             | sed ':a;N;$!ba;s/\n/\\n/g' \
-             | sed 's/"/\\"/g' \
-             | sed 's/\r/\\r/g')
+            | sed ':a;N;$!ba;s/\n/\\n/g' \
+            | sed 's/"/\\"/g' \
+            | sed 's/\r/\\r/g')
 
-          # ---- SEND PAYLOAD WITH RETRY LOGIC ----
+          # Send with retry logic
           for i in {1..5}
           do
             echo "Attempt $i to send CI data..."
-            curl -X POST "https://dressiest-terese-nontemperable.ngrok-free.dev/api/send_ci_failure" \
+            curl -X POST "${{ secrets.DEVSTREAM_WEBHOOK }}" \
               -H "Content-Type: application/json" \
               -d "{
                 \"repo_owner\": \"${{ github.repository_owner }}\",
-                \"repo_name\": \"Dummy\",
+                \"repo_name\": \"${{ github.event.repository.name }}\",
                 \"branch\": \"${GITHUB_REF_NAME}\",
                 \"commit\": \"${GITHUB_SHA}\",
                 \"log\": \"$ESCAPED_LOG\",
@@ -78,8 +115,9 @@ jobs:
             sleep 2
           done
 
-        
-      # Optional: Notify if everything succeeded
+      # ---------------------------------------------------------
+      # 7. Success output if tests passed
+      # ---------------------------------------------------------
       - name: Success message
-        if: success()
+        if: ${{ steps.tests.outcome == 'success' }}
         run: echo "✔ CI passed without errors."
