@@ -32,17 +32,25 @@ jobs:
           echo "Tests failed. Sending error to DevStream AI..."
 
           ERROR_LOG=$(pytest --maxfail=1 2>&1 || true)
-          FILE_PATH="src/calc.py"
-          CODE_CONTENT=$(sed 's/"/\\"/g' src/calc.py)
 
-          curl -X POST "https://dressiest-terese-nontemperable.ngrok-free.dev/api/send_ci_failure" \
+          ESCAPED_LOG=$(printf "%s" "$ERROR_LOG" \
+            | sed ':a;N;$!ba;s/\n/\\n/g' \
+            | sed 's/"/\\"/g')
+
+          CODE_CONTENT=$(sed ':a;N;$!ba;s/\n/\\n/g' src/calc.py \
+            | sed 's/"/\\"/g')
+
+                curl -X POST "https://dressiest-terese-nontemperable.ngrok-free.dev/api/send_ci_failure" \
             -H "Content-Type: application/json" \
             -d "{
-              \"repo_owner\": \"anjalikasingh2003\",
-              \"repo_name\": \"Dummy\",
-              \"branch\": \"master\",
-              \"commit\": \"${GITHUB_SHA}\",
-              \"log\": \"$ERROR_LOG\",
-              \"file_path\": \"$FILE_PATH\",
-              \"code\": \"$CODE_CONTENT\"
-            }"
+                  \"repo_owner\": \"anjalikasingh2003\",
+                  \"repo_name\": \"Dummy\",
+                  \"branch\": \"master\",
+                  \"commit\": \"${GITHUB_SHA}\",
+                  \"log\": \"$ESCAPED_LOG\",
+                  \"file_path\": \"src/calc.py\",
+                  \"code\": \"$CODE_CONTENT\"
+                }"
+
+
+
