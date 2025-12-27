@@ -1,4 +1,4 @@
-from src.calc import divide
+from src.my_test import divide
 
 def test_divide_by_zero():
     print("testing")
