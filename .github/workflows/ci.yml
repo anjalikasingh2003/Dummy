@@ -21,6 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r req.txt
+          
       - name: Add project root to PYTHONPATH
         run: echo "PYTHONPATH=$(pwd)/src" >> $GITHUB_ENV
       # ---- RUN TESTS (Expected to fail) ----
