@@ -28,11 +28,11 @@ jobs:
         run: |
           echo "Running tests..."
           pytest --maxfail=1
-        continue-on-error: true
+      
 
       # ---- SEND FAILURE TO DEVSTREAM AI ----
       - name: Send CI failure to DevStream AI
-        if: ${{ steps.tests.outcome == 'failure' }}
+        if: failure()
         run: |
           echo "❌ Tests failed — sending details to DevStream AI..."
 
