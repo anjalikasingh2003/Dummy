@@ -1,3 +1,3 @@
 def load_user(id):
     print("Loading user")
-    return 10 / 0  
+    return 10
