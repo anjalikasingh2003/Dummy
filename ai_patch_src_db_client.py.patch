@@ -1,0 +1,5 @@
+--- src/db/client.py
++++ src/db/client.py
+@@ -1,2 +1 @@
+-import non_existent_module  # ImportError
+ from src.db.client import Client
