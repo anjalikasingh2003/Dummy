@@ -1,8 +1,8 @@
 from src.utils.io import read_file
 
 def test_file():
-import tempfile
-import os
+    import tempfile
+    import os
     # Create a temporary file with known content for the test
     with tempfile.NamedTemporaryFile(mode='w+', delete=False) as tmp_file:
         tmp_file.write("data")
