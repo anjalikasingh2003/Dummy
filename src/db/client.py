@@ -1,3 +1,3 @@
 # def something():
 #     pass
-import non_existent_module  # ImportError
+import non_existent_haa_module  # ImportError
