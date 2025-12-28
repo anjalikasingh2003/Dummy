@@ -1,2 +1,3 @@
 def read_file(p):
-    open("missingkkkkk-furfur-yeh-fiohujmle.txt").read()
+    with open(p, 'r') as f:
+        return f.read()
