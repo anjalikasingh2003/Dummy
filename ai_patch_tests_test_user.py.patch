@@ -1,0 +1,5 @@
+--- tests/test_user.py
++++ tests/test_user.py
+@@ -1,1 +1,1 @@
+-from src.user import load_user
++from src.user import get_user
