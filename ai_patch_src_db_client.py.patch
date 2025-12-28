@@ -1,0 +1,5 @@
+--- src/db/client.py
++++ src/db/client.py
+@@ -0,0 +1,2 @@
++def something():
++    pass
