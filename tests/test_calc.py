@@ -1,5 +1,4 @@
 from src.my_test import divide
-from src.calc import divide_l
 def test_divide_by_zero():
     print("testingn mm fdk,njnsmd")
     a= divide(10, 2) == 5
