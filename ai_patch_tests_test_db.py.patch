@@ -1,0 +1,6 @@
+--- a/tests/test_db.py
++++ b/tests/test_db.py
+@@ -1,2 +1,2 @@
+-from src.db.client import something
++from src.db.client import DBClient # Assuming 'something' was a placeholder for an actual client class
+ # Rest of the test_db.py content
