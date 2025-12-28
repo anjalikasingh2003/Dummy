@@ -1,0 +1,5 @@
+--- a/src/db/client.py
++++ b/src/db/client.py
+@@ -0,0 +1,2 @@
++class Something:
++    pass
