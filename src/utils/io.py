@@ -1,4 +1,3 @@
 def read_file(p):
-++ b/src/utils/io.py
-    with open(p, 'r') as f:
+++ b//home/runner/work/Dummy/Dummy/src/utils/io.py
         return f.read()
