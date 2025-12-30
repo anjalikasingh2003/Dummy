@@ -1,6 +1,6 @@
 --- a/src/utils/io.py
 +++ b/src/utils/io.py
 @@ -1,2 +1,2 @@
- def read_file(p):
--    open("missingkjmkkkkbfh-tisha-ishu-bafekld-txt").read()
+def read_file(p):
+-    open("missingkjmkkknkkbfh-tisha-ishu-bafefekld-txt").read()
 +    return open(p).read()
