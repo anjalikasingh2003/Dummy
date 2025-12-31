@@ -3,3 +3,4 @@ def read_file(path: str):
             return f.read()
     except FileNotFoundError:
         return None
+# hfu
