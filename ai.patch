@@ -1,10 +1,10 @@
---- a//home/runner/work/Dummy/Dummy/src/utils/io.py
-+++ b//home/runner/work/Dummy/Dummy/src/utils/io.py
-@@ -1,6 +1,6 @@
+--- a/src/utils/io.py
++++ b/src/utils/io.py
+@@ -1,5 +1,6 @@
  def read_file(path: str):
--++ b//home/runner/work/Dummy/Dummy/src/utils/io.py
-+    try:
-         with open(path, "r") as f:
-             return f.read()
+     try:
+-            return f.read()
++        with open(path, 'r') as f:
++            return f.read()
      except FileNotFoundError:
          return None
