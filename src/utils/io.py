@@ -1,2 +1,3 @@
 def read_file(p):
-    open("missingkjgrijorbfijmkbfh-tisha-ishu-pvchrnnd-txt").read()
+++ b/src/utils/io.py
+    return open(p).read()
