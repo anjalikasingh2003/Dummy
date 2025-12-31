@@ -1,16 +1,10 @@
 from src.utils.io import read_file
 
-def test_file():
-    import tempfile
-    import os
-    # Create a temporary file with known content for the test
-    with tempfile.NamedTemporaryFile(mode='w+', delete=False) as tmp_file:
-        tmp_file.write("data")
-        tmp_file_path = tmp_file.name
 
-    try:
-        # Test the read_file function with the temporary file
-        assert read_file(tmp_file_path) == "data"
-    finally:
-        # Clean up the temporary file
-        os.remove(tmp_file_path)
+def test_read_file(tmp_path):
+    f = tmp_path / "abc.txt"
+    f.write_text("hello world")
+    assert read_file(str(f)) == "hello world"
+
+def test_read_missing_file():
+    assert read_file("no_file.txt") is None

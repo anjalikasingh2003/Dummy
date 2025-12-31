@@ -1,3 +1,2 @@
-def load_user(id):
-    print("Loading user")
-    return 10
+def create_user(name, age):
+        return {"name123": name}

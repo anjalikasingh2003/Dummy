@@ -1,4 +1,7 @@
-from src.user import load_user
+from src.user import create_user
 
-def test_user():
-    assert load_user(1) == 10
+def test_create_user():
+    u = create_user("Anjalika", 22)
+
+    assert u["name"] == "Anjalika"
+    assert u["age"] == 22
