@@ -1,7 +1,7 @@
 def divide_l(a, b):
     print("testing")
     print("once myprep yehhhh cloud")
-    result = a / 0
+    result = a / b
     return result
 
 
